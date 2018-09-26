@@ -19,6 +19,9 @@ class Location:
         else:
             return False
         
+    def display(self):
+        print( (self.row, self.column) ) 
+        
 class Piece:
     def __init__(self, color, size):
         self.color = color
@@ -99,7 +102,10 @@ class Board:
         
         for piece in pieces:
             if piece.position == Location("off", "off"):
-                return piece
+                return [piece]
+        
+        return piece
+        
             
     def get_board_pieces(self, color):
         pieces = []
@@ -110,7 +116,7 @@ class Board:
         return pieces
                     
     def get_possible_pieces(self, color):
-        return [ self.get_off_piece(color), *self.get_board_pieces(color) ]    
+        return [ *self.get_off_piece(color), *self.get_board_pieces(color) ]    
     
     def display(self):
         for row in self.squares:
@@ -128,7 +134,7 @@ class Board:
         darks = 0
         lights = 0
         for location in locations:
-            color =  self.get_square(location).color()
+            color = self.get_square(location).color()
             if color == "dark":
                 darks += 1
             elif color == "light":
@@ -150,12 +156,10 @@ class Board:
             (darks, lights) = self.count_line(line)
             (own, other) = (darks, lights) if color == "dark" else (lights, darks)
             if own == 4:
-                count = 100
-                break
+                return 100
             elif other == 4:
-                count = -100
-                break
-            elif own > 0 and other < 1:
+                return -100
+            elif other < 1:
                 count += own
         return count
                         
@@ -235,11 +239,11 @@ class Node:
         if n > 0:
             board.make_move(self.move)
             self.score = board.score(color)
-            if self.score != 100 and self.score != -100:
+            if self.score == 100 or self.score == -100:
+                pass
+            else:
                 next_color = "dark" if self.move.piece.color == "light" else "light"
-                next_moves = board.get_moves_all(next_color)
-                for next_move in next_moves:
-                    self.nexts.append( Node(next_move) )
+                self.nexts = [ Node(move) for move in board.get_moves_all(next_color) ]
                 for next_move in self.nexts:
                     next_move.expand(color, board, n-1)
             board.undo_move()
@@ -264,10 +268,7 @@ class Game:
         self.board = Board()
         
     def get_move(self, color, board, n = 2):
-        initials = self.board.get_moves_all(color)
-        top_nodes = []
-        for initial in initials:
-            top_nodes.append(Node(initial))
+        top_nodes = [ Node(move) for move in self.board.get_moves_all(color) ]
         for node in top_nodes:
             node.expand(color, board, n)
         collapsed = [node.collapse(color) for node in top_nodes]
