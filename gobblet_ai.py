@@ -107,7 +107,7 @@ class Board:
             if piece.position == Location("off", "off"):
                 return [piece]
 
-        return piece
+        return []
 
 
     def get_board_pieces(self, color):
@@ -408,4 +408,4 @@ class Game:
 
 
 g = Game()
-g.play()
+g.play_ai()
